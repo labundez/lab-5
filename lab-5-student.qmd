@@ -5,6 +5,9 @@ format: html
 editor: source
 embed-resources: true
 code-fold: true
+execute:
+  warning: false
+  error: false
 ---
 
 For this lab, you will be joining and filtering related datasets to solve a murder mystery!
@@ -66,6 +69,7 @@ crime_scene_report |>
   slice(3) |>
   pull(description) 
 ```
+I used ChatGPT to understand how to pair the pull() funciton with slice() to pull a specific element I wanted to display. 
 
 **Our next step is to look at what these two witnesses said in their interviews, and utilize any clues. First, we track the first witness who lives on Northwestern Dr. Here's her transcript: **
 ```{r}
