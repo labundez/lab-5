@@ -1,6 +1,6 @@
 ---
 title: "Lab 5: Murder in SQL City"
-author: "Your name here!"
+author: "Lisette Abundez"
 format: html
 editor: source
 embed-resources: true
@@ -54,8 +54,59 @@ Detective Wickham reaches out to you...
 
 > A crime has taken place and I need your help! There was a murder in SQL City sometime on January 15, 2018. Could you retrieve the crime scene report from the police department’s database and follow the clues to find the person responsible for the murder?!
 
+Let's start by pulling crime scene reports from January 15, 2018 in SQL City!
+
 ```{r}
 #| label: inspecting-crime-scene-report
+
+crime_scene_report |>
+  filter(date == 20180115,
+         city == "SQL City") 
+```
+
+Our next step is to look at what these two witnesses said in their interviews, and utilize any clues. First, we track the first witness who lives on Northwestern Dr.
+```{r}
+#| label: tracking-first-witness
+
+person |>
+  inner_join(interview, 
+             by = join_by(id == person_id)
+             ) |>
+  filter(address_street_name == "Northwestern Dr") |>
+  slice_max(order_by = address_number, n = 1)
+
+```
+
+The information from the first witness is super helpful. Let's get any additional clues from witness #2, who lives on Franklin Ave and is named Annnabel. 
+```{r}
+#| label: tracking-second-witness
+
+person |>
+  inner_join(interview, 
+             by = join_by(id == person_id)
+             ) |>
+  filter(str_detect(name, "^Annabel"),
+         address_street_name == "Franklin Ave")
+
+```
+Let's apply all these clues to join and filter across several tables. This will lead us to the final suspect!!
+```{r}
+#| label: applying-clues-to-find-suspect
+
+get_fit_now_check_in |>
+    inner_join(get_fit_now_member,
+               by = join_by(membership_id == id)
+               )|>
+    inner_join(person,
+               by = join_by(person_id == id,
+                            name == name)
+               ) |>
+    inner_join(drivers_license,
+               by = join_by(license_id == id)
+               ) |>
+    filter(check_in_date == 20180109) |>
+    filter(str_detect(membership_id, "^48Z")) |>
+    filter(str_detect(plate_number, "H42W"))
 
 ```
 
@@ -66,4 +117,4 @@ Hint: Make sure you check for interviews with any suspects!
 
 ## And the final suspect is...
 
-*Put the name of the person responsible for the murder here:*
+*Put the name of the person responsible for the murder here: Jeremy Bowers!*
