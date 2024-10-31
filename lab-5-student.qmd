@@ -71,6 +71,8 @@ crime_scene_report |>
 ```
 I used ChatGPT to understand how to pair the pull() funciton with slice() to pull a specific element I wanted to display. 
 
+### Witnesses Interviews
+
 **Our next step is to look at what these two witnesses said in their interviews, and utilize any clues. First, we track the first witness who lives on Northwestern Dr. Here's her transcript: **
 ```{r}
 #| label: tracking-first-witness
@@ -98,7 +100,10 @@ person |>
   pull(transcript)
 
 ```
-**Let's apply all these clues to join and filter across several tables. This will lead us to the final suspect!! **
+
+### Find the Initial Suspect
+
+**Let's apply all these clues to join and filter across several tables. This will lead us to the suspect!! **
 ```{r}
 #| label: applying-clues-to-find-suspect
 
@@ -118,12 +123,54 @@ get_fit_now_check_in |>
     filter(str_detect(plate_number, "H42W"))
 
 ```
+## Interview Initial Suspect
 
+**Let's interview the suspect**
+```{r}
+#| label: interview-suspect
 
+interview |>
+  inner_join(person,
+             by = join_by(person_id == id)) |>
+  filter(person_id == 67318) |>
+  pull(transcript)
+
+```
+
+## Find Who Hired Initial Suspect 
+
+**Let's find who hired Jeremy by using his clues**
+```{r}
+#| label: find-who-hired
+
+facebook_event_checkin |>
+  inner_join(person,
+             by = join_by(person_id == id)
+             ) |>
+  inner_join(drivers_license,
+             by = join_by(license_id == id )
+              ) |>
+  filter(hair_color == "red" &
+           car_make == "Tesla" &
+           car_model == "Model S" &
+           event_name == "SQL Symphony Concert")
+
+```
+## Confirm Final Suspect 
+ 
+**Jeremy said she has a lot of money. Let's confirm this and if it's true, this is our final suspect!**
+
+```{r}
+#| label: confirm-suspect
+
+income |>
+  filter(ssn == 987756388)
+
+```
 **Follow the evidence to the person responsible for the murder, building a report as you go.**
 Hint: Make sure you check for interviews with any suspects!
 
 
 ## And the final suspect is...
 
-*Jeremy Bowers!*
+*Miranda Priestly!*
