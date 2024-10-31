@@ -4,6 +4,7 @@ author: "Lisette Abundez"
 format: html
 editor: source
 embed-resources: true
+code-fold: true
 ---
 
 For this lab, you will be joining and filtering related datasets to solve a murder mystery!
@@ -54,17 +55,19 @@ Detective Wickham reaches out to you...
 
 > A crime has taken place and I need your help! There was a murder in SQL City sometime on January 15, 2018. Could you retrieve the crime scene report from the police department’s database and follow the clues to find the person responsible for the murder?!
 
-Let's start by pulling crime scene reports from January 15, 2018 in SQL City!
+**Let's start by pulling crime scene reports from January 15, 2018 in SQL City! Here is the clue I pulled: **
 
 ```{r}
 #| label: inspecting-crime-scene-report
 
 crime_scene_report |>
   filter(date == 20180115,
-         city == "SQL City") 
+         city == "SQL City") |>
+  slice(3) |>
+  pull(description) 
 ```
 
-Our next step is to look at what these two witnesses said in their interviews, and utilize any clues. First, we track the first witness who lives on Northwestern Dr.
+**Our next step is to look at what these two witnesses said in their interviews, and utilize any clues. First, we track the first witness who lives on Northwestern Dr. Here's her transcript: **
 ```{r}
 #| label: tracking-first-witness
 
@@ -73,11 +76,12 @@ person |>
              by = join_by(id == person_id)
              ) |>
   filter(address_street_name == "Northwestern Dr") |>
-  slice_max(order_by = address_number, n = 1)
+  slice_max(order_by = address_number, n = 1) |>
+  pull(transcript)
 
 ```
 
-The information from the first witness is super helpful. Let's get any additional clues from witness #2, who lives on Franklin Ave and is named Annnabel. 
+**The information from the first witness is super helpful. Let's get any additional clues from witness #2, who lives on Franklin Ave and is named Annnabel. Here's her transcript:**
 ```{r}
 #| label: tracking-second-witness
 
@@ -86,10 +90,11 @@ person |>
              by = join_by(id == person_id)
              ) |>
   filter(str_detect(name, "^Annabel"),
-         address_street_name == "Franklin Ave")
+         address_street_name == "Franklin Ave") |>
+  pull(transcript)
 
 ```
-Let's apply all these clues to join and filter across several tables. This will lead us to the final suspect!!
+**Let's apply all these clues to join and filter across several tables. This will lead us to the final suspect!! **
 ```{r}
 #| label: applying-clues-to-find-suspect
 
@@ -117,4 +122,4 @@ Hint: Make sure you check for interviews with any suspects!
 
 ## And the final suspect is...
 
-*Put the name of the person responsible for the murder here: Jeremy Bowers!*
+*Jeremy Bowers!*
