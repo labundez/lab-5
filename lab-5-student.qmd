@@ -5,9 +5,11 @@ format: html
 editor: source
 embed-resources: true
 code-fold: true
+code-tools: true
 execute:
   warning: false
   error: false
+  echo:true
 ---
 
 For this lab, you will be joining and filtering related datasets to solve a murder mystery!
@@ -64,12 +66,13 @@ Detective Wickham reaches out to you...
 #| label: inspecting-crime-scene-report
 
 crime_scene_report |>
-  filter(date == 20180115,
-         city == "SQL City") |>
-  slice(3) |>
+  mutate(date = ymd(date)) |>
+  filter(date == "2018-01-15",
+         city == "SQL City",
+         type == "murder") |>
   pull(description) 
 ```
-I used ChatGPT to understand how to pair the pull() funciton with slice() to pull a specific element I wanted to display. 
+
 
 ### Witnesses Interviews
 
@@ -107,8 +110,8 @@ person |>
 ```{r}
 #| label: applying-clues-to-find-suspect
 
-get_fit_now_check_in |>
-    inner_join(get_fit_now_member,
+initial_suspect <- get_fit_now_check_in |>
+    right_join(get_fit_now_member,
                by = join_by(membership_id == id)
                )|>
     inner_join(person,
@@ -118,9 +121,9 @@ get_fit_now_check_in |>
     inner_join(drivers_license,
                by = join_by(license_id == id)
                ) |>
-    filter(check_in_date == 20180109) |>
-    filter(str_detect(membership_id, "^48Z")) |>
-    filter(str_detect(plate_number, "H42W"))
+    filter(check_in_date == 20180109,
+          str_detect(membership_id, "^48Z"),
+          str_detect(plate_number, "H42W"))
 
 ```
 ## Interview Initial Suspect
@@ -129,10 +132,9 @@ get_fit_now_check_in |>
 ```{r}
 #| label: interview-suspect
 
-interview |>
-  inner_join(person,
-             by = join_by(person_id == id)) |>
-  filter(person_id == 67318) |>
+initial_suspect |>
+  inner_join(interview,
+             by = join_by(person_id == person_id)) |>
   pull(transcript)
 
 ```
@@ -143,17 +145,20 @@ interview |>
 ```{r}
 #| label: find-who-hired
 
-facebook_event_checkin |>
-  inner_join(person,
+hired_suspect <- facebook_event_checkin |>
+  left_join(person,
              by = join_by(person_id == id)
              ) |>
   inner_join(drivers_license,
              by = join_by(license_id == id )
               ) |>
-  filter(hair_color == "red" &
-           car_make == "Tesla" &
-           car_model == "Model S" &
-           event_name == "SQL Symphony Concert")
+  filter(hair_color == "red",
+           car_make == "Tesla",
+           car_model == "Model S",
+           event_name == "SQL Symphony Concert") |>
+  group_by(person_id) |>
+  summarize(across(everything(), first))
+
 
 ```
 ## Confirm Final Suspect 
@@ -163,10 +168,14 @@ facebook_event_checkin |>
 ```{r}
 #| label: confirm-suspect
 
-income |>
-  filter(ssn == 987756388)
+hired_suspect |>
+  inner_join(interview,
+             by = join_by(person_id == person_id))|>
+  pull(transcript)
 
 ```
+No interview found! 
+
 **Follow the evidence to the person responsible for the murder, building a report as you go.**
 Hint: Make sure you check for interviews with any suspects!
 
