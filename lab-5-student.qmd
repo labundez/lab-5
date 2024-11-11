@@ -9,7 +9,7 @@ code-tools: true
 execute:
   warning: false
   error: false
-  echo:true
+  echo: true
 ---
 
 For this lab, you will be joining and filtering related datasets to solve a murder mystery!
@@ -125,6 +125,8 @@ initial_suspect <- get_fit_now_check_in |>
           str_detect(membership_id, "^48Z"),
           str_detect(plate_number, "H42W"))
 
+initial_suspect
+
 ```
 ## Interview Initial Suspect
 
@@ -159,7 +161,7 @@ hired_suspect <- facebook_event_checkin |>
   group_by(person_id) |>
   summarize(across(everything(), first))
 
-
+hired_suspect
 ```
 ## Confirm Final Suspect 
  
